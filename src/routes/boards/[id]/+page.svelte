@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { activeBoardId, activeBoard, updateBoard } from '$lib/stores/boards';
@@ -14,19 +15,15 @@
 	let board = $derived($activeBoard);
 	let isEditingName = $state(false);
 	let draftName = $state('');
-	let nameInput: HTMLInputElement | undefined = $state();
+	let nameInput = $state<HTMLInputElement | undefined>();
 
-	function startEditing() {
+	async function startEditing() {
 		draftName = board?.name ?? '';
 		isEditingName = true;
+		await tick();
+		nameInput?.focus();
+		nameInput?.select();
 	}
-
-	$effect(() => {
-		if (isEditingName && nameInput) {
-			nameInput.focus();
-			nameInput.select();
-		}
-	});
 
 	function saveName() {
 		if (board && draftName.trim()) {
@@ -71,6 +68,7 @@
 			</a>
 			{#if isEditingName}
 				<input
+					bind:this={nameInput}
 					type="text"
 					bind:value={draftName}
 					onblur={saveName}
